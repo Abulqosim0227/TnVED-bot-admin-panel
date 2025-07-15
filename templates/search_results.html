@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.search_results_title if t else 'Detailed Search Results' }} - TNVED Bot Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 mb-2">📋 {{ t.search_results_title if t else 'Detailed Search Results' }}</h1>
+                <p class="lead mb-0">{{ t.search_results_desc if t else 'View detailed bot search results with TNVED codes' }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group">
+                    <a href="/" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>{{ t.back_to_dashboard if t else 'Back to Dashboard' }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">{{ total_searches or 0 }}</h3>
+                            <p class="card-text">{{ t.total_searches if t else 'Total Detailed Searches' }}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-search fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">{{ today_searches or 0 }}</h3>
+                            <p class="card-text">{{ t.searches_today if t else 'Searches Today' }}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-day fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">{{ popular_codes|length or 0 }}</h3>
+                            <p class="card-text">{{ t.popular_queries if t else 'Popular TNVED Codes' }}</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-star fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular TNVED Codes -->
+    {% if popular_codes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">🏆 {{ t.popular_queries if t else 'Most Popular TNVED Codes' }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for code in popular_codes %}
+                        <div class="col-md-6 col-lg-4 mb-2">
+                            <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                                <code class="text-primary">{{ code.main_code }}</code>
+                                <span class="badge bg-primary">{{ code.frequency }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Detailed Search Results -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">🔍 {{ t.recent_searches if t else 'Recent Detailed Search Results' }}</h5>
+                    <small class="text-muted">{{ t.just_loaded if t else 'Last 50 results' }}</small>
+                </div>
+                <div class="card-body p-0">
+                    {% if search_results %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ t.user if t else 'User' }}</th>
+                                    <th>{{ t.search_query if t else 'Search Query' }}</th>
+                                    <th>{{ t.main_result if t else 'Main Result' }}</th>
+                                    <th>{{ t.accuracy if t else 'Accuracy' }}</th>
+                                    <th>{{ t.timestamp if t else 'Time' }}</th>
+                                    <th>{{ t.view_details if t else 'Details' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in search_results %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <span class="text-white fw-bold">{{ result.full_name[0] if result.full_name else 'U' }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ result.full_name or 'Unknown' }}</div>
+                                                <small class="text-muted">ID: {{ result.user_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="query-text" style="max-width: 200px;">
+                                            <strong>{{ result.query[:50] }}{% if result.query|length > 50 %}...{% endif %}</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <code class="text-primary">{{ result.main_code or 'N/A' }}</code>
+                                            {% if result.main_description %}
+                                            <br><small class="text-muted">{{ result.main_description[:80] }}{% if result.main_description|length > 80 %}...{% endif %}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if result.main_accuracy %}
+                                        <span class="badge bg-success">{{ "%.2f"|format(result.main_accuracy) }}</span>
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ result.search_timestamp.strftime('%Y-%m-%d') }}</small><br>
+                                        <small class="text-muted">{{ result.search_timestamp.strftime('%H:%M:%S') }}</small>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ result.id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{{ t.no_search_results if t else 'No search results found' }}</h5>
+                        <p class="text-muted">{{ t.no_data if t else 'No detailed search results have been recorded yet.' }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modals -->
+{% for result in search_results %}
+<div class="modal fade" id="detailModal{{ result.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ t.search_results if t else 'Search Result Details' }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{{ t.search_query if t else 'Search Query' }}:</h6>
+                        <div class="p-3 bg-light rounded mb-3">
+                            <strong>{{ result.query }}</strong>
+                        </div>
+                        
+                        <h6>{{ t.user if t else 'User Information' }}:</h6>
+                        <div class="p-3 bg-light rounded mb-3">
+                            <strong>{{ result.full_name or 'Unknown User' }}</strong><br>
+                            <small>ID: {{ result.user_id }}</small><br>
+                            <small>{{ t.timestamp if t else 'Time' }}: {{ result.search_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>{{ t.main_result if t else 'Main Result' }}:</h6>
+                        <div class="p-3 border border-success rounded mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <code class="text-success fs-5">{{ result.main_code or 'N/A' }}</code>
+                                {% if result.main_accuracy %}
+                                <span class="badge bg-success">{{ "%.2f"|format(result.main_accuracy) }}</span>
+                                {% endif %}
+                            </div>
+                            {% if result.main_description %}
+                            <p class="mb-0 small">{{ result.main_description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if result.similar_1_code or result.similar_2_code or result.similar_3_code %}
+                <h6>{{ t.similar_results if t else 'Similar Results' }}:</h6>
+                <div class="row">
+                    {% if result.similar_1_code %}
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border border-info rounded">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <code class="text-info">{{ result.similar_1_code }}</code>
+                                {% if result.similar_1_accuracy %}
+                                <span class="badge bg-info">{{ "%.2f"|format(result.similar_1_accuracy) }}</span>
+                                {% endif %}
+                            </div>
+                            {% if result.similar_1_description %}
+                            <p class="mb-0 small">{{ result.similar_1_description[:100] }}{% if result.similar_1_description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if result.similar_2_code %}
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border border-warning rounded">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <code class="text-warning">{{ result.similar_2_code }}</code>
+                                {% if result.similar_2_accuracy %}
+                                <span class="badge bg-warning">{{ "%.2f"|format(result.similar_2_accuracy) }}</span>
+                                {% endif %}
+                            </div>
+                            {% if result.similar_2_description %}
+                            <p class="mb-0 small">{{ result.similar_2_description[:100] }}{% if result.similar_2_description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if result.similar_3_code %}
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border border-secondary rounded">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <code class="text-secondary">{{ result.similar_3_code }}</code>
+                                {% if result.similar_3_accuracy %}
+                                <span class="badge bg-secondary">{{ "%.2f"|format(result.similar_3_accuracy) }}</span>
+                                {% endif %}
+                            </div>
+                            {% if result.similar_3_description %}
+                            <p class="mb-0 small">{{ result.similar_3_description[:100] }}{% if result.similar_3_description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t.cancel if t else 'Close' }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<style>
+.avatar-sm {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+}
+
+.query-text {
+    word-wrap: break-word;
+}
+
+.stat-card {
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh every 30 seconds
+setTimeout(function() {
+    location.reload();
+}, 30000);
+
+// Add copy to clipboard functionality for TNVED codes
+document.addEventListener('DOMContentLoaded', function() {
+    const codes = document.querySelectorAll('code');
+    codes.forEach(code => {
+        code.style.cursor = 'pointer';
+        code.title = 'Click to copy';
+        code.addEventListener('click', function() {
+            navigator.clipboard.writeText(this.textContent).then(() => {
+                // Show small notification
+                this.style.backgroundColor = '#d4edda';
+                setTimeout(() => {
+                    this.style.backgroundColor = '';
+                }, 1000);
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

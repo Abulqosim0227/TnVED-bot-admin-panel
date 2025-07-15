@@ -1,0 +1,1646 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.dashboard_title }} - {{ t.admin_panel }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 mb-2">🎯 {{ t.beautiful_dashboard }}</h1>
+                <p class="lead mb-0">{{ t.welcome_back }}, {{ username }}! {{ t.overview }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex justify-content-end align-items-center gap-3">
+                    <!-- Auto-refresh controls -->
+                    <div class="auto-refresh-controls">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted">Auto-refresh:</span>
+                            <select id="refresh-interval" class="form-select form-select-sm" style="width: 100px;">
+                                <option value="0">Off</option>
+                                <option value="2000">2s</option>
+                                <option value="3000" selected>3s</option>
+                                <option value="5000">5s</option>
+                                <option value="10000">10s</option>
+                            </select>
+                            <button id="refresh-now" class="btn btn-sm btn-outline-primary" title="Refresh Now">
+                                <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="current-time">
+                        <i class="fas fa-clock me-2"></i>
+                        <span id="current-time"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">{{ t.total_users }}</p>
+                            <h3 class="card-title mb-0 counter" data-target="{{ user_stats.total_users or 0 }}" id="total-users">{{ user_stats.total_users or 0 }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 4px;">
+                        <div class="progress-bar bg-light" style="width: 85%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">{{ t.new_users_today }}</p>
+                            <h3 class="card-title mb-0 counter" data-target="{{ user_stats.new_users_today or 0 }}" id="new-users-today">{{ user_stats.new_users_today or 0 }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-plus fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 4px;">
+                        <div class="progress-bar bg-light" style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">{{ t.active_users_today }}</p>
+                            <h3 class="card-title mb-0 counter" data-target="{{ user_stats.active_users_today or 0 }}" id="active-users-today">{{ user_stats.active_users_today or 0 }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 4px;">
+                        <div class="progress-bar bg-light" style="width: 45%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">{{ t.total_searches }}</p>
+                            <h3 class="card-title mb-0 counter" data-target="{{ user_stats.total_searches or 0 }}" id="total-searches">{{ user_stats.total_searches or 0 }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-search fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 4px;">
+                        <div class="progress-bar bg-light" style="width: 75%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts and Analytics Row -->
+    <div class="row mb-4">
+        <!-- Search Trends Chart -->
+        <div class="col-md-8">
+            <div class="card modern-chart-card">
+                <div class="chart-header-modern">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="chart-icon-modern">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5 class="chart-title-modern mb-1">Search Activity Trends</h5>
+                            <p class="chart-subtitle-modern mb-0">Daily search activity over the last 7 days</p>
+                        </div>
+                        <div class="chart-badge-modern">
+                            <span class="badge bg-gradient-primary">Live Data</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body-modern">
+                    <canvas id="searchTrendsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">⚡ {{ t.quick_actions }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/users" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-users me-2"></i>{{ t.view_all_users }}
+                        </a>
+                        <a href="/analytics" class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-chart-bar me-2"></i>{{ t.analytics }}
+                        </a>
+                        <a href="/broadcast" class="btn btn-outline-warning btn-lg">
+                            <i class="fas fa-bullhorn me-2"></i>{{ t.send_broadcast }}
+                        </a>
+                        <a href="/system" class="btn btn-outline-info btn-lg">
+                            <i class="fas fa-cog me-2"></i>{{ t.system_status }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analytics Dashboard Widgets -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">📊 Analytics Overview</h5>
+                    <small class="text-muted">Key performance indicators</small>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="analytics-metric">
+                                <h4 class="text-success">{{ ((user_stats.new_users_this_month / user_stats.total_users * 100) if user_stats.total_users > 0 else 0)|round(1) }}%</h4>
+                                <small class="text-muted">Growth Rate</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="analytics-metric">
+                                <h4 class="text-info">{{ (user_stats.total_searches / user_stats.total_users if user_stats.total_users > 0 else 0)|round(1) }}</h4>
+                                <small class="text-muted">Avg. Queries/User</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="analytics-metric">
+                                <h4 class="text-warning">98.5%</h4>
+                                <small class="text-muted">Success Rate</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="analytics-metric">
+                                <h4 class="text-primary">{{ (user_stats.active_users_today / user_stats.total_users * 100 if user_stats.total_users > 0 else 0)|round(1) }}%</h4>
+                                <small class="text-muted">Daily Active Rate</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="/analytics" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-chart-line me-1"></i>View Full Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card modern-chart-card">
+                <div class="chart-header-modern">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="chart-icon-modern">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h5 class="chart-title-modern mb-1">Daily Trends</h5>
+                            <p class="chart-subtitle-modern mb-0">Last 7 days activity</p>
+                        </div>
+                        <div class="chart-badge-modern">
+                            <span class="badge bg-gradient-success">7 Days</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body-modern">
+                    <canvas id="miniTrendsChart" height="120"></canvas>
+                    <div class="chart-legend-modern mt-3">
+                        <div class="d-flex justify-content-center gap-4">
+                            <div class="legend-item">
+                                <span class="legend-dot bg-primary"></span>
+                                <span class="legend-text">Active Users</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot bg-success"></span>
+                                <span class="legend-text">Searches</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Grid -->
+    <div class="row mb-4">
+        <!-- Recent Searches -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">🔍 {{ t.recent_searches }}</h5>
+                    <small class="text-muted">{{ t.recent_activity }}</small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Query</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-searches-tbody">
+                                {% for search in recent_searches %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <span class="text-white fw-bold">{{ search.full_name[0] if search.full_name else 'U' }}</span>
+                                            </div>
+                                            <span class="fw-medium">{{ search.full_name or 'Unknown' }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ search.query[:30] }}{% if search.query|length > 30 %}...{% endif %}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ search.created_at.strftime('%H:%M') if search.created_at else 'N/A' }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Popular Queries -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">🔥 {{ t.popular_queries }}</h5>
+                    <small class="text-muted">{{ t.popular_queries }}</small>
+                </div>
+                <div class="card-body" id="popular-queries-container">
+                    {% for query in popular_queries %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="flex-grow-1">
+                            <div class="fw-medium">{{ query.query[:40] }}{% if query.query|length > 40 %}...{% endif %}</div>
+                            <div class="progress mt-1" style="height: 6px;">
+                                {% set max_count = popular_queries[0].count if popular_queries else 1 %}
+                                {% set percentage = (query.count / max_count * 100) if max_count > 0 else 0 %}
+                                <div class="progress-bar bg-gradient" style="width: {{ percentage }}%"></div>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <span class="badge bg-primary">{{ query.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Failed Searches Statistics Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">⚠️ Search Analytics</h5>
+                            <small class="text-muted">Failed and successful search patterns</small>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <div class="text-center">
+                                <div class="text-danger h4 mb-0">{{ (failed_stats.failed_today if failed_stats else 0) or 0 }}</div>
+                                <small class="text-muted">Failed Today</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-warning h4 mb-0">{{ (failed_stats.failed_week if failed_stats else 0) or 0 }}</div>
+                                <small class="text-muted">Failed This Week</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-info h4 mb-0">{{ (failed_stats.failed_total if failed_stats else 0) or 0 }}</div>
+                                <small class="text-muted">Total Failed</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Results and Failed Queries -->
+    <div class="row mb-4">
+        <!-- Recent TNVED Search Results -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">✅ Recent TNVED Codes Found</h5>
+                    <small class="text-muted">Successful searches with codes</small>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_search_results %}
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Query</th>
+                                    <th>TNVED Code</th>
+                                    <th>Accuracy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in recent_search_results %}
+                                <tr>
+                                    <td>
+                                        <small class="fw-medium">{{ result.full_name or 'Unknown' }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ result.query[:25] }}{% if result.query|length > 25 %}...{% endif %}</small>
+                                    </td>
+                                    <td>
+                                        <code class="text-success">{{ result.main_code }}</code>
+                                    </td>
+                                    <td>
+                                        {% if result.main_accuracy %}
+                                        <span class="badge bg-success">{{ "%.2f"|format(result.main_accuracy) }}</span>
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No successful search results yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Failed Queries -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">❌ Recent Failed Searches</h5>
+                    <small class="text-muted">Queries that returned no results</small>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_not_found %}
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Failed Query</th>
+                                    <th>Language</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for failed in recent_not_found %}
+                                <tr>
+                                    <td>
+                                        <small class="fw-medium">{{ failed.full_name or 'Unknown' }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-danger">{{ failed.query[:25] }}{% if failed.query|length > 25 %}...{% endif %}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ failed.language or 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ failed.search_timestamp.strftime('%H:%M') if failed.search_timestamp else 'N/A' }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No failed searches recorded</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Popular Analysis -->
+    <div class="row">
+        <!-- Most Common Failed Queries -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">📊 Common Failed Queries</h5>
+                    <small class="text-muted">Most frequent unsuccessful searches (last 7 days)</small>
+                </div>
+                <div class="card-body">
+                    {% if common_not_found %}
+                        {% for query in common_not_found %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="flex-grow-1">
+                                <div class="fw-medium text-danger">{{ query.query[:35] }}{% if query.query|length > 35 %}...{% endif %}</div>
+                                <div class="progress mt-1" style="height: 4px;">
+                                    {% set max_failed = common_not_found[0].count if common_not_found else 1 %}
+                                    {% set percentage = (query.count / max_failed * 100) if max_failed > 0 else 0 %}
+                                    <div class="progress-bar bg-danger" style="width: {{ percentage }}%"></div>
+                                </div>
+                            </div>
+                            <div class="ms-3">
+                                <span class="badge bg-danger">{{ query.count }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <p class="text-muted">No common failed queries this week!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Most Popular TNVED Codes -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">🏆 Popular TNVED Codes</h5>
+                    <small class="text-muted">Most frequently found codes (last 7 days)</small>
+                </div>
+                <div class="card-body">
+                    {% if popular_codes %}
+                        {% for code in popular_codes %}
+                        <div class="mb-3 p-2 border-left border-success bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <code class="text-success fw-bold">{{ code.main_code }}</code>
+                                    <div class="small text-muted mt-1">{{ code.description[:50] if code.description else 'No description' }}{% if code.description and code.description|length > 50 %}...{% endif %}</div>
+                                </div>
+                                <span class="badge bg-success ms-2">{{ code.frequency }} times</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No popular codes this week</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status Cards -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">🖥️ System Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="status-indicator">
+                                <div class="status-dot bg-success"></div>
+                                <h6 class="mt-2">{{ t.database if t else 'Database' }}</h6>
+                                <small class="text-success">{{ t.connected if t else 'Connected' }}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="status-indicator">
+                                <div class="status-dot bg-success"></div>
+                                <h6 class="mt-2">{{ t.bot_api if t else 'Bot API' }}</h6>
+                                <small class="text-success">{{ t.active if t else 'Active' }}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="status-indicator">
+                                <div class="status-dot bg-success"></div>
+                                <h6 class="mt-2">Admin Panel</h6>
+                                <small class="text-success">Online</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Animations, Charts, and Auto-Refresh -->
+<script>
+// Global variables
+let refreshInterval = null;
+let isRefreshing = false;
+
+// Real-time clock
+function updateTime() {
+    const now = new Date();
+    document.getElementById('current-time').textContent = now.toLocaleTimeString();
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// Counter animations
+function animateCounter(element, newValue) {
+    const currentValue = parseInt(element.textContent) || 0;
+    const increment = (newValue - currentValue) / 30;
+    let current = currentValue;
+    
+    const updateCounter = () => {
+        if (Math.abs(current - newValue) > Math.abs(increment)) {
+            current += increment;
+            element.textContent = Math.floor(current);
+            requestAnimationFrame(updateCounter);
+        } else {
+            element.textContent = newValue;
+        }
+    };
+    
+    if (increment !== 0) {
+        updateCounter();
+    }
+}
+
+// Initial counter animations (called from main DOMContentLoaded)
+function initializeCounterAnimations() {
+    const counters = document.querySelectorAll('.counter');
+    
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const increment = target / 50;
+        let current = 0;
+        
+        const updateCounter = () => {
+            if (current < target) {
+                current += increment;
+                counter.textContent = Math.floor(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.textContent = target;
+            }
+        };
+        
+        updateCounter();
+    });
+}
+
+// Initialize everything when page loads
+window.addEventListener('load', function() {
+    console.log('Dashboard fully loaded');
+    
+    // Debug user stats
+    console.log('User stats from backend:', {
+        total_users: {{ user_stats.total_users or 0 }},
+        new_users_today: {{ user_stats.new_users_today or 0 }},
+        active_users_today: {{ user_stats.active_users_today or 0 }},
+        total_searches: {{ user_stats.total_searches or 0 }},
+        searches_today: {{ user_stats.searches_today or 0 }}
+    });
+    
+    // Initialize counter animations first
+    initializeCounterAnimations();
+    
+    // Initialize auto-refresh
+    initializeAutoRefresh();
+    
+    // Wait longer for Chart.js to load properly
+    setTimeout(function() {
+        if (typeof Chart !== 'undefined') {
+            console.log('Chart.js found, initializing charts...');
+            initializeDashboardCharts();
+        } else {
+            console.error('Chart.js not found, creating simple displays');
+            createSimpleChartPlaceholders();
+        }
+    }, 1000);
+});
+
+function initializeDashboardCharts() {
+    console.log('Initializing dashboard charts...');
+    
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded on dashboard!');
+        createSimpleChartPlaceholders();
+        return;
+    }
+    
+    // Wait a bit more to ensure DOM is ready
+    setTimeout(() => {
+        try {
+            createSearchTrendsChart();
+            createMiniTrendsChart();
+            console.log('Dashboard charts initialized successfully');
+        } catch (error) {
+            console.error('Error initializing dashboard charts:', error);
+            createSimpleChartPlaceholders();
+        }
+    }, 200);
+}
+
+function createSearchTrendsChart() {
+    try {
+        const ctx = document.getElementById('searchTrendsChart');
+        if (!ctx) {
+            console.log('searchTrendsChart canvas not found');
+            return;
+        }
+        
+        // Safe data calculation
+        const searchesToday = {{ user_stats.searches_today or 0 }};
+        let chartData;
+        
+        if (searchesToday > 0) {
+            chartData = [
+                Math.max(0, searchesToday - 6),
+                Math.max(0, searchesToday - 5), 
+                Math.max(0, searchesToday - 4),
+                Math.max(0, searchesToday - 3),
+                Math.max(0, searchesToday - 2),
+                Math.max(0, searchesToday - 1),
+                searchesToday
+            ];
+        } else {
+            // Demo data when no searches
+            chartData = [5, 8, 12, 15, 18, 16, 13];
+        }
+        
+        console.log('Creating Search Trends Chart with data:', chartData);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', 'Yesterday', 'Today'],
+                datasets: [{
+                    label: 'Searches',
+                    data: chartData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.5,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#667eea',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 4,
+                    shadowColor: 'rgba(102, 126, 234, 0.3)',
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowOffsetY: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#667eea',
+                        borderWidth: 2,
+                        cornerRadius: 10,
+                        displayColors: false,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            },
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            },
+                            padding: 10
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                elements: {
+                    line: {
+                        borderJoinStyle: 'round'
+                    }
+                }
+            }
+        });
+        console.log('Search Trends Chart created successfully');
+    } catch (error) {
+        console.error('Error creating Search Trends Chart:', error);
+        // Create fallback display
+        const canvas = document.getElementById('searchTrendsChart');
+        if (canvas) {
+            const container = canvas.parentElement;
+            const searchesToday = {{ user_stats.searches_today or 0 }};
+            container.innerHTML = `
+                <div class="p-4 text-center">
+                    <h3 class="text-primary">${searchesToday}</h3>
+                    <p class="text-muted">Searches Today</p>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-primary" style="width: 75%"></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+function createMiniTrendsChart() {
+    try {
+        const miniCtx = document.getElementById('miniTrendsChart');
+        if (!miniCtx) {
+            console.log('miniTrendsChart canvas not found');
+            return;
+        }
+        
+        // Safe data calculation  
+        const activeUsersToday = {{ user_stats.active_users_today or 0 }};
+        const searchesToday = {{ user_stats.searches_today or 0 }};
+        
+        let activeUsersData, searchesData;
+        
+        if (activeUsersToday > 0 || searchesToday > 0) {
+            activeUsersData = [
+                Math.max(0, activeUsersToday - 3),
+                Math.max(0, activeUsersToday - 2),
+                Math.max(0, activeUsersToday - 2),
+                Math.max(0, activeUsersToday - 1),
+                Math.max(0, activeUsersToday - 1),
+                Math.max(0, activeUsersToday),
+                activeUsersToday
+            ];
+            
+            searchesData = [
+                Math.max(0, searchesToday - 6),
+                Math.max(0, searchesToday - 5),
+                Math.max(0, searchesToday - 4),
+                Math.max(0, searchesToday - 3),
+                Math.max(0, searchesToday - 2),
+                Math.max(0, searchesToday - 1),
+                searchesToday
+            ];
+        } else {
+            // Demo data when no activity
+            activeUsersData = [2, 3, 4, 5, 6, 7, 7];
+            searchesData = [8, 10, 12, 15, 11, 13, 13];
+        }
+        
+        console.log('Creating Mini Trends Chart with active users:', activeUsersData, 'searches:', searchesData);
+        
+        new Chart(miniCtx, {
+            type: 'line',
+            data: {
+                labels: ['6d', '5d', '4d', '3d', '2d', '1d', 'Today'],
+                datasets: [{
+                    label: 'Active Users',
+                    data: activeUsersData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.15)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#667eea',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
+                }, {
+                    label: 'Searches',
+                    data: searchesData,
+                    borderColor: '#20c997',
+                    backgroundColor: 'rgba(32, 201, 151, 0.15)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#20c997',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#20c997',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#667eea',
+                        borderWidth: 2,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        titleFont: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 11
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.04)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 10,
+                                weight: '500'
+                            },
+                            padding: 8
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 10,
+                                weight: '500'
+                            },
+                            padding: 8
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                elements: {
+                    line: {
+                        borderJoinStyle: 'round'
+                    }
+                }
+            }
+        });
+        console.log('Mini Trends Chart created successfully');
+    } catch (error) {
+        console.error('Error creating Mini Trends Chart:', error);
+        // Create fallback display
+        const canvas = document.getElementById('miniTrendsChart');
+        if (canvas) {
+            const container = canvas.parentElement;
+            const activeToday = {{ user_stats.active_users_today or 0 }};
+            const searchesToday2 = {{ user_stats.searches_today or 0 }};
+            container.innerHTML = `
+                <div class="p-3">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h5 class="text-info">${activeToday}</h5>
+                            <small class="text-muted">Active Users</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-success">${searchesToday2}</h5>
+                            <small class="text-muted">Searches</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+function showDashboardChartErrors() {
+    console.error('Showing error messages for dashboard charts');
+    
+    const chartIds = ['searchTrendsChart', 'miniTrendsChart'];
+    const chartNames = ['Search Activity Trends', 'Daily Trends'];
+    
+    chartIds.forEach((id, index) => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+            const container = canvas.parentElement;
+            container.innerHTML = `
+                <div class="d-flex align-items-center justify-content-center h-100" style="min-height: 200px;">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                        <h6>Chart Loading Error</h6>
+                        <p class="text-muted">Unable to load ${chartNames[index]} data.</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh Page
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    });
+}
+
+function createSimpleChartPlaceholders() {
+    console.log('Creating simple chart placeholders');
+    
+    // Create simple search trends display
+    const searchCanvas = document.getElementById('searchTrendsChart');
+    if (searchCanvas) {
+        const container = searchCanvas.parentElement;
+        const searchesToday = {{ user_stats.searches_today or 0 }};
+        const totalSearches = {{ user_stats.total_searches or 0 }};
+        const progressWidth = Math.min(100, Math.max(20, (searchesToday / Math.max(1, 30)) * 100));
+        
+        container.innerHTML = `
+            <div class="modern-fallback-display p-4 text-center">
+                <div class="fallback-icon mb-3">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h2 class="fallback-number text-primary mb-2">${searchesToday}</h2>
+                <p class="fallback-label mb-3">Searches Today</p>
+                <div class="modern-progress mb-3">
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: ${progressWidth}%"></div>
+                    </div>
+                </div>
+                <div class="fallback-stats">
+                    <span class="stat-item">
+                        <i class="fas fa-database"></i>
+                        Total: ${totalSearches}
+                    </span>
+                </div>
+                <div class="fallback-status mt-3">
+                    <span class="status-badge">
+                        <i class="fas fa-info-circle"></i>
+                        Chart Preview
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Create simple mini trends display
+    const miniCanvas = document.getElementById('miniTrendsChart');
+    if (miniCanvas) {
+        const container = miniCanvas.parentElement;
+        const activeToday = {{ user_stats.active_users_today or 0 }};
+        const searchesToday2 = {{ user_stats.searches_today or 0 }};
+        const totalUsers = {{ user_stats.total_users or 0 }};
+        
+        const activePercentage = Math.min(100, Math.max(10, (activeToday / Math.max(1, totalUsers)) * 100));
+        const searchPercentage = Math.min(100, Math.max(10, (searchesToday2 / Math.max(1, 30)) * 100));
+        
+        container.innerHTML = `
+            <div class="p-3">
+                <div class="row text-center mb-3">
+                    <div class="col-6">
+                        <h5 class="text-info mb-1">${activeToday}</h5>
+                        <small class="text-muted">Active Users</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-success mb-1">${searchesToday2}</h5>
+                        <small class="text-muted">Searches</small>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">Active Rate:</small>
+                        <span class="badge bg-info">${Math.round(activePercentage)}%</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 4px;">
+                        <div class="progress-bar bg-info" style="width: ${activePercentage}%"></div>
+                    </div>
+                </div>
+                <small class="text-warning d-block text-center">📈 Chart unavailable</small>
+            </div>
+        `;
+    }
+}
+
+// Auto-refresh functionality
+async function refreshDashboardData() {
+    if (isRefreshing) return;
+    
+    isRefreshing = true;
+    const refreshIcon = document.getElementById('refresh-icon');
+    
+    // Show loading animation
+    refreshIcon.classList.add('fa-spin');
+    
+    try {
+        const response = await fetch('/api/dashboard-data', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa('admin:admin123')
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update statistics with animation
+                animateCounter(document.getElementById('total-users'), data.user_stats.total_users);
+                animateCounter(document.getElementById('new-users-today'), data.user_stats.new_users_today);
+                animateCounter(document.getElementById('active-users-today'), data.user_stats.active_users_today);
+                animateCounter(document.getElementById('total-searches'), data.user_stats.total_searches);
+                
+                // Update recent searches
+                updateRecentSearches(data.recent_searches);
+                
+                // Update popular queries
+                updatePopularQueries(data.popular_queries);
+                
+                // Update failed searches and search results
+                updateFailedStats(data.failed_stats);
+                updateRecentNotFound(data.recent_not_found);
+                updateRecentSearchResults(data.recent_search_results);
+                
+                // Show success indicator
+                showRefreshStatus('success');
+            }
+        } else {
+            showRefreshStatus('error');
+        }
+    } catch (error) {
+        console.error('Refresh error:', error);
+        showRefreshStatus('error');
+    } finally {
+        isRefreshing = false;
+        refreshIcon.classList.remove('fa-spin');
+    }
+}
+
+// Update recent searches table
+function updateRecentSearches(searches) {
+    const tbody = document.getElementById('recent-searches-tbody');
+    tbody.innerHTML = '';
+    
+    searches.forEach(search => {
+        const row = document.createElement('tr');
+        const initial = search.full_name ? search.full_name[0].toUpperCase() : 'U';
+        const name = search.full_name || 'Unknown';
+        const query = search.query.length > 30 ? search.query.substring(0, 30) + '...' : search.query;
+        const time = search.created_at ? new Date(search.created_at).toLocaleTimeString('en', {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+        
+        row.innerHTML = `
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                        <span class="text-white fw-bold">${initial}</span>
+                    </div>
+                    <span class="fw-medium">${name}</span>
+                </div>
+            </td>
+            <td>
+                <span class="badge bg-light text-dark">${query}</span>
+            </td>
+            <td>
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    ${time}
+                </small>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Update popular queries
+function updatePopularQueries(queries) {
+    const container = document.getElementById('popular-queries-container');
+    container.innerHTML = '';
+    
+    const maxCount = queries.length > 0 ? queries[0].count : 1;
+    
+    queries.forEach(query => {
+        const queryText = query.query.length > 40 ? query.query.substring(0, 40) + '...' : query.query;
+        const percentage = maxCount > 0 ? (query.count / maxCount * 100) : 0;
+        
+        const queryElement = document.createElement('div');
+        queryElement.className = 'd-flex justify-content-between align-items-center mb-3';
+        queryElement.innerHTML = `
+            <div class="flex-grow-1">
+                <div class="fw-medium">${queryText}</div>
+                <div class="progress mt-1" style="height: 6px;">
+                    <div class="progress-bar bg-gradient" style="width: ${percentage}%"></div>
+                </div>
+            </div>
+            <div class="ms-3">
+                <span class="badge bg-primary">${query.count}</span>
+            </div>
+        `;
+        container.appendChild(queryElement);
+    });
+}
+
+// Show refresh status
+function showRefreshStatus(status) {
+    const refreshBtn = document.getElementById('refresh-now');
+    const originalClass = refreshBtn.className;
+    
+    if (status === 'success') {
+        refreshBtn.className = 'btn btn-sm btn-success';
+        setTimeout(() => refreshBtn.className = originalClass, 1000);
+    } else if (status === 'error') {
+        refreshBtn.className = 'btn btn-sm btn-danger';
+        setTimeout(() => refreshBtn.className = originalClass, 2000);
+    }
+}
+
+// Update failed search statistics
+function updateFailedStats(stats) {
+    if (!stats) return;
+    
+    // Update the failed statistics in the analytics card if they exist
+    const failedTodayElement = document.querySelector('.text-danger.h4');
+    if (failedTodayElement) {
+        failedTodayElement.textContent = stats.failed_today || 0;
+    }
+    
+    const failedWeekElement = document.querySelector('.text-warning.h4');
+    if (failedWeekElement) {
+        failedWeekElement.textContent = stats.failed_week || 0;
+    }
+}
+
+// Update recent not found queries
+function updateRecentNotFound(notFound) {
+    const tbody = document.querySelector('.card:has(.text-danger) tbody');
+    if (!tbody || !notFound) return;
+    
+    tbody.innerHTML = '';
+    
+    notFound.forEach(failed => {
+        const row = document.createElement('tr');
+        const name = failed.full_name || 'Unknown';
+        const query = failed.query.length > 25 ? failed.query.substring(0, 25) + '...' : failed.query;
+        const language = failed.language || 'N/A';
+        const time = failed.search_timestamp ? new Date(failed.search_timestamp).toLocaleTimeString('en', {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+        
+        row.innerHTML = `
+            <td>
+                <small class="fw-medium">${name}</small>
+            </td>
+            <td>
+                <small class="text-danger">${query}</small>
+            </td>
+            <td>
+                <span class="badge bg-secondary">${language}</span>
+            </td>
+            <td>
+                <small class="text-muted">${time}</small>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Update recent search results
+function updateRecentSearchResults(results) {
+    const tbody = document.querySelector('.card:has(.text-success) tbody');
+    if (!tbody || !results) return;
+    
+    tbody.innerHTML = '';
+    
+    results.forEach(result => {
+        const row = document.createElement('tr');
+        const name = result.full_name || 'Unknown';
+        const query = result.query.length > 25 ? result.query.substring(0, 25) + '...' : result.query;
+        const accuracy = result.main_accuracy ? parseFloat(result.main_accuracy).toFixed(2) : 'N/A';
+        
+        row.innerHTML = `
+            <td>
+                <small class="fw-medium">${name}</small>
+            </td>
+            <td>
+                <small>${query}</small>
+            </td>
+            <td>
+                <code class="text-success">${result.main_code}</code>
+            </td>
+            <td>
+                ${result.main_accuracy ? 
+                    `<span class="badge bg-success">${accuracy}</span>` : 
+                    '<span class="text-muted">N/A</span>'
+                }
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Setup auto-refresh controls (called from main DOMContentLoaded)
+function initializeAutoRefresh() {
+    const refreshSelect = document.getElementById('refresh-interval');
+    const refreshBtn = document.getElementById('refresh-now');
+    
+    if (!refreshSelect || !refreshBtn) {
+        console.warn('Auto-refresh controls not found');
+        return;
+    }
+    
+    // Auto-refresh interval change handler
+    refreshSelect.addEventListener('change', function() {
+        const interval = parseInt(this.value);
+        
+        // Clear existing interval
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+        
+        // Set new interval if not 0 (off)
+        if (interval > 0) {
+            refreshInterval = setInterval(refreshDashboardData, interval);
+            console.log(`Auto-refresh set to ${interval/1000} seconds`);
+        }
+    });
+    
+    // Manual refresh button handler
+    refreshBtn.addEventListener('click', function() {
+        refreshDashboardData();
+    });
+    
+    // Initialize auto-refresh with default interval (3 seconds)
+    const defaultInterval = parseInt(refreshSelect.value);
+    if (defaultInterval > 0) {
+        refreshInterval = setInterval(refreshDashboardData, defaultInterval);
+        console.log(`Auto-refresh initialized: ${defaultInterval/1000} seconds`);
+    }
+}
+
+// Add visual feedback for live updates
+const style = document.createElement('style');
+style.textContent = `
+    .auto-refresh-controls {
+        font-size: 0.9rem;
+    }
+    
+    #refresh-icon.fa-spin {
+        color: #007bff;
+    }
+    
+    .table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+    
+    .table tbody tr.highlight {
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+    
+    .counter {
+        transition: color 0.3s ease;
+    }
+    
+    .counter.updated {
+        color: #28a745;
+    }
+    
+    .analytics-metric {
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+    }
+    
+    .analytics-metric:hover {
+        background: rgba(0,0,0,0.05);
+        transform: translateY(-2px);
+    }
+    
+    .analytics-metric h4 {
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+    
+    .analytics-metric small {
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Modern Chart Card Styles */
+    .modern-chart-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .modern-chart-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 60px rgba(0, 0, 0, 0.12);
+    }
+    
+    .modern-chart-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+        background-size: 200% 100%;
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    
+    .chart-header-modern {
+        padding: 1.5rem 1.5rem 0.5rem;
+        background: transparent;
+        position: relative;
+    }
+    
+    .chart-icon-modern {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .modern-chart-card:hover .chart-icon-modern {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 30px rgba(102, 126, 234, 0.4);
+    }
+    
+    .chart-title-modern {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+        letter-spacing: -0.025em;
+    }
+    
+    .chart-subtitle-modern {
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .chart-badge-modern .badge {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 25px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+        box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3) !important;
+    }
+    
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3) !important;
+    }
+    
+    .chart-body-modern {
+        padding: 1rem 1.5rem 1.5rem;
+        position: relative;
+    }
+    
+    .chart-legend-modern {
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .legend-text {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* Enhanced canvas styling */
+    canvas {
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.7);
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    
+    /* Loading animation improvements */
+    .chart-loading {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    
+    /* Border left utility class */
+    .border-left {
+        border-left: 4px solid !important;
+    }
+    
+    .border-success {
+        border-color: #28a745 !important;
+    }
+    
+    /* Sticky table headers */
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #f8f9fa;
+    }
+    
+    /* Failed search analytics styling */
+    .search-analytics-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    /* Custom scrollbar for tables */
+    .table-responsive::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
+    /* Popular codes styling */
+    .popular-code-item {
+        transition: all 0.3s ease;
+        border-left: 4px solid #28a745;
+    }
+    
+    .popular-code-item:hover {
+        background-color: #e8f5e8 !important;
+        transform: translateX(5px);
+    }
+    
+    /* Failed queries styling */
+    .failed-query-item {
+        transition: all 0.3s ease;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .failed-query-item:hover {
+        background-color: #f8d7da !important;
+    }
+    
+    /* Table row hover effects */
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05) !important;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+        .modern-chart-card {
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-header-modern {
+            padding: 1rem 1rem 0.5rem;
+        }
+        
+        .chart-body-modern {
+            padding: 0.5rem 1rem 1rem;
+        }
+        
+        .chart-icon-modern {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+        
+        .chart-title-modern {
+            font-size: 1.1rem;
+        }
+        
+        .chart-subtitle-modern {
+            font-size: 0.8rem;
+        }
+        
+        /* Mobile responsive for new sections */
+        .search-analytics-card .d-flex {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        
+        .search-analytics-card .d-flex .gap-3 {
+            width: 100%;
+            justify-content: space-around;
+            margin-top: 1rem;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %} 

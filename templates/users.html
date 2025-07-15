@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Users - TNVED Bot Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 mb-2">👥 User Management</h1>
+                <p class="lead mb-0">Manage and view all bot users</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-download me-2"></i>{{ t.download_excel if t else 'Download Excel' }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/export-users">
+                            <i class="fas fa-users me-2"></i>{{ t.export_all_users if t else 'Export All Users' }}
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#customExportModal">
+                            <i class="fas fa-filter me-2"></i>{{ t.export_custom_users if t else 'Export Custom Users' }}
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="btn-group">
+                    <a href="/" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">📋 User List</h5>
+                    <small class="text-muted">All registered users</small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Telegram ID</th>
+                                    <th>Phone</th>
+                                    <th>Language</th>
+                                    <th>Registered</th>
+                                    <th>Last Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <span class="text-white fw-bold">{{ user.full_name[0] if user.full_name else 'U' }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ user.full_name or 'Unknown' }}</div>
+                                                <small class="text-muted">@{{ user.username or 'No username' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code>{{ user.telegram_id }}</code>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">{{ user.phone or 'Not provided' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ user.language or 'Unknown' }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if user.registered_at %}
+                                                {{ user.registered_at.strftime('%Y-%m-%d %H:%M') }}
+                                            {% else %}
+                                                Unknown
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if user.last_active %}
+                                                {{ user.last_active.strftime('%Y-%m-%d %H:%M') }}
+                                            {% else %}
+                                                Never
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Export Modal -->
+<div class="modal fade" id="customExportModal" tabindex="-1" aria-labelledby="customExportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customExportModalLabel">
+                    <i class="fas fa-filter me-2"></i>{{ t.export_custom_users if t else 'Export Custom Users' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/export-users-custom" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="user_ids" class="form-label">User IDs:</label>
+                        <textarea class="form-control" id="user_ids" name="user_ids" rows="3" 
+                                  placeholder="{{ t.user_ids_placeholder if t else 'Enter user IDs separated by commas (e.g., 123456, 789012)' }}" required></textarea>
+                        <div class="form-text">Enter Telegram IDs separated by commas</div>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="true" id="include_history" name="include_history">
+                        <label class="form-check-label" for="include_history">
+                            {{ t.include_search_history if t else 'Include Search History' }}
+                        </label>
+                        <div class="form-text">Adds separate sheets with each user's search history</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t.cancel if t else 'Cancel' }}</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>{{ t.download_excel if t else 'Download Excel' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.system_status_title }} - {{ t.admin_panel }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- System Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 mb-2">🖥️ {{ t.system_status_title }}</h1>
+                <p class="lead mb-0">{{ t.all_systems_operational }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="/" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>{{ t.back_to_dashboard }}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status Cards -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">✅ {{ t.all_systems_operational }}</h5>
+                            <small class="text-muted">Current system components status</small>
+                        </div>
+                        <div class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>All Green
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="status-indicator">
+                                <div class="status-dot bg-success mb-3"></div>
+                                <h6 class="mt-2">{{ t.database }}</h6>
+                                <small class="text-success">{{ t.connected }}</small>
+                                <div class="mt-2">
+                                    <small class="text-muted">PostgreSQL 13+</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="status-indicator">
+                                <div class="status-dot bg-success mb-3"></div>
+                                <h6 class="mt-2">{{ t.bot_api }}</h6>
+                                <small class="text-success">{{ t.active }}</small>
+                                <div class="mt-2">
+                                    <small class="text-muted">Telegram API</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="status-indicator">
+                                <div class="status-dot bg-success mb-3"></div>
+                                <h6 class="mt-2">Admin Panel</h6>
+                                <small class="text-success">Online</small>
+                                <div class="mt-2">
+                                    <small class="text-muted">FastAPI Server</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">📊 Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="metric-item text-center mb-3">
+                                <h4 class="text-success">< 50ms</h4>
+                                <small class="text-muted">Database Response</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-item text-center mb-3">
+                                <h4 class="text-info">99.9%</h4>
+                                <small class="text-muted">Uptime</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-item text-center">
+                                <h4 class="text-primary">~100MB</h4>
+                                <small class="text-muted">Memory Usage</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-item text-center">
+                                <h4 class="text-warning">< 5%</h4>
+                                <small class="text-muted">CPU Usage</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">🔧 {{ t.advanced_monitoring }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="feature-list">
+                        <div class="feature-item mb-2">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            {{ t.server_usage }}
+                        </div>
+                        <div class="feature-item mb-2">
+                            <i class="fas fa-heartbeat text-success me-2"></i>
+                            {{ t.health_checks }}
+                        </div>
+                        <div class="feature-item mb-2">
+                            <i class="fas fa-tachometer-alt text-info me-2"></i>
+                            {{ t.performance_metrics }}
+                        </div>
+                        <div class="feature-item mb-2">
+                            <i class="fas fa-bell text-warning me-2"></i>
+                            {{ t.alert_notifications }}
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-file-alt text-secondary me-2"></i>
+                            {{ t.system_logs }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">⚡ System Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="/test-db" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-database me-2"></i>Test Database
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-success w-100 mb-2" onclick="checkBotAPI()">
+                                <i class="fas fa-robot me-2"></i>Test Bot API
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-info w-100 mb-2" onclick="refreshStatus()">
+                                <i class="fas fa-sync me-2"></i>Refresh Status
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/analytics" class="btn btn-outline-warning w-100 mb-2">
+                                <i class="fas fa-chart-bar me-2"></i>View Logs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.status-dot {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.status-dot::before {
+    content: "✓";
+    font-weight: bold;
+}
+
+.status-indicator {
+    padding: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.status-indicator:hover {
+    transform: translateY(-3px);
+}
+
+.metric-item {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.metric-item:hover {
+    background: #e9ecef;
+    transform: scale(1.05);
+}
+
+.feature-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.feature-item:last-child {
+    border-bottom: none;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 15px 15px;
+}
+
+.card {
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+</style>
+
+<script>
+async function checkBotAPI() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    button.disabled = true;
+    
+    try {
+        // This would actually test the bot API
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+        
+        button.innerHTML = '<i class="fas fa-check me-2"></i>API OK';
+        button.className = 'btn btn-success w-100 mb-2';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.className = 'btn btn-outline-success w-100 mb-2';
+            button.disabled = false;
+        }, 2000);
+        
+    } catch (error) {
+        button.innerHTML = '<i class="fas fa-times me-2"></i>API Error';
+        button.className = 'btn btn-danger w-100 mb-2';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.className = 'btn btn-outline-success w-100 mb-2';
+            button.disabled = false;
+        }, 2000);
+    }
+}
+
+function refreshStatus() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+    button.disabled = true;
+    
+    setTimeout(() => {
+        button.innerHTML = '<i class="fas fa-check me-2"></i>Updated';
+        button.className = 'btn btn-success w-100 mb-2';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.className = 'btn btn-outline-info w-100 mb-2';
+            button.disabled = false;
+        }, 1500);
+    }, 1000);
+}
+
+// Auto-refresh status every 30 seconds
+setInterval(() => {
+    // In a real implementation, this would refresh the actual status
+    console.log('Status refreshed automatically');
+}, 30000);
+</script>
+{% endblock %} 

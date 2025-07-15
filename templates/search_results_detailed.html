@@ -1,0 +1,713 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - TNVED Bot Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Search Results Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 mb-2">🔍 Search Results Analytics</h1>
+                <p class="lead mb-0">Detailed view of all bot search results with TNVED codes</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group">
+                    <button id="refresh-results" class="btn btn-outline-light" onclick="refreshResults()">
+                        <i class="fas fa-sync-alt" id="refresh-icon"></i> Refresh
+                    </button>
+                    <a href="/" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">Total Results</p>
+                            <h3 class="card-title mb-0" id="total-results">{{ total_results or 0 }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-search fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">This Week's Results</p>
+                            <h3 class="card-title mb-0" id="week-results">{{ week_results or 0 }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-day fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">Avg Accuracy</p>
+                            <h3 class="card-title mb-0" id="avg-accuracy">{{ avg_accuracy or '0.00' }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-bullseye fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">Unique Codes</p>
+                            <h3 class="card-title mb-0" id="unique-codes">{{ unique_codes or 0 }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-tags fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">🔧 Filters & Search</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-select" id="date-filter" onchange="applyFilters()">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week" selected>This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Language</label>
+                            <select class="form-select" id="language-filter" onchange="applyFilters()">
+                                <option value="all">All Languages</option>
+                                <option value="ru">Russian</option>
+                                <option value="uz">Uzbek</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Accuracy Range</label>
+                            <select class="form-select" id="accuracy-filter" onchange="applyFilters()">
+                                <option value="all">All Accuracies</option>
+                                <option value="high">High (≥0.9)</option>
+                                <option value="medium">Medium (0.7-0.9)</option>
+                                <option value="low">Low (<0.7)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Search Query</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="query-search" placeholder="Search queries...">
+                                <button class="btn btn-outline-primary" onclick="applyFilters()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">📋 Search Results Details</h5>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-info" id="results-count">{{ search_results|length }} results</span>
+                            <button class="btn btn-sm btn-outline-success" onclick="exportResults()">
+                                <i class="fas fa-download me-1"></i>Export Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-hover mb-0" id="results-table">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Query</th>
+                                    <th>Main Result</th>
+                                    <th>Similar Results</th>
+                                    <th>Language</th>
+                                    <th>Total Found</th>
+                                    <th>Timestamp</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-tbody">
+                                {% for result in search_results %}
+                                <tr data-id="{{ result.id }}" class="result-row">
+                                    <td>
+                                        <div class="user-info">
+                                            <div class="fw-bold">{{ result.full_name or 'Unknown User' }}</div>
+                                            <small class="text-muted">ID: {{ result.user_id }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="query-cell">
+                                            <span class="query-text" title="{{ result.query }}">
+                                                {{ result.query[:40] }}{% if result.query|length > 40 %}...{% endif %}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="main-result">
+                                            {% if result.main_code %}
+                                            <code class="tnved-code">{{ result.main_code }}</code>
+                                            <div class="accuracy-badge">
+                                                {% if result.main_accuracy %}
+                                                <span class="badge bg-success">{{ "%.3f"|format(result.main_accuracy) }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="description-text">
+                                                <small class="text-muted">{{ (result.main_description[:50] + '...') if result.main_description and result.main_description|length > 50 else (result.main_description or '') }}</small>
+                                            </div>
+                                            {% else %}
+                                            <span class="text-muted">No main result</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="similar-results">
+                                            {% if result.similar_1_code %}
+                                            <div class="similar-item">
+                                                <code class="tnved-code-small">{{ result.similar_1_code }}</code>
+                                                {% if result.similar_1_accuracy %}
+                                                <span class="badge badge-sm bg-info">{{ "%.3f"|format(result.similar_1_accuracy) }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            {% if result.similar_2_code %}
+                                            <div class="similar-item">
+                                                <code class="tnved-code-small">{{ result.similar_2_code }}</code>
+                                                {% if result.similar_2_accuracy %}
+                                                <span class="badge badge-sm bg-info">{{ "%.3f"|format(result.similar_2_accuracy) }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            {% if result.similar_3_code %}
+                                            <div class="similar-item">
+                                                <code class="tnved-code-small">{{ result.similar_3_code }}</code>
+                                                {% if result.similar_3_accuracy %}
+                                                <span class="badge badge-sm bg-info">{{ "%.3f"|format(result.similar_3_accuracy) }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            {% if not result.similar_1_code and not result.similar_2_code and not result.similar_3_code %}
+                                            <span class="text-muted">No similar results</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ result.language or 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ result.total_results_found or 0 }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="timestamp">
+                                            <div>{{ result.search_timestamp.strftime('%Y-%m-%d') if result.search_timestamp else 'N/A' }}</div>
+                                            <small class="text-muted">{{ result.search_timestamp.strftime('%H:%M:%S') if result.search_timestamp else '' }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewDetails({{ result.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if not search_results %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No search results found</h5>
+                        <p class="text-muted">No detailed search results have been recorded yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🔍 Search Result Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modal-body-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tnved-code {
+    background: #e7f3ff;
+    color: #0056b3;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.tnved-code-small {
+    background: #e7f3ff;
+    color: #0056b3;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 0.75rem;
+}
+
+.similar-item {
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.badge-sm {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+}
+
+.accuracy-badge {
+    margin-top: 3px;
+}
+
+.description-text {
+    margin-top: 3px;
+}
+
+.user-info {
+    min-width: 120px;
+}
+
+.query-cell {
+    max-width: 200px;
+}
+
+.query-text {
+    word-wrap: break-word;
+    cursor: pointer;
+}
+
+.query-text:hover {
+    background: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.main-result {
+    min-width: 150px;
+}
+
+.similar-results {
+    min-width: 120px;
+}
+
+.timestamp {
+    min-width: 100px;
+    font-size: 0.9rem;
+}
+
+.result-row:hover {
+    background-color: rgba(0, 123, 255, 0.05) !important;
+}
+
+.sticky-top {
+    background-color: #f8f9fa !important;
+    z-index: 10;
+}
+
+#refresh-icon.fa-spin {
+    color: #007bff;
+}
+
+.auto-refresh-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: none;
+}
+
+.auto-refresh-indicator.show {
+    display: block;
+    animation: fadeInOut 2s;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+.table th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #495057;
+}
+
+.filters-applied {
+    background-color: #e3f2fd !important;
+    border-left: 4px solid #2196f3;
+}
+</style>
+
+<script>
+let autoRefreshInterval = null;
+
+// Real-time refresh functionality
+function refreshResults() {
+    const refreshIcon = document.getElementById('refresh-icon');
+    refreshIcon.classList.add('fa-spin');
+    
+    // Show auto-refresh indicator
+    showAutoRefreshIndicator();
+    
+    // Apply current filters and refresh
+    applyFilters();
+    
+    setTimeout(() => {
+        refreshIcon.classList.remove('fa-spin');
+    }, 1000);
+}
+
+function showAutoRefreshIndicator() {
+    let indicator = document.querySelector('.auto-refresh-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.className = 'auto-refresh-indicator';
+        indicator.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Updated';
+        document.body.appendChild(indicator);
+    }
+    
+    indicator.classList.add('show');
+    setTimeout(() => {
+        indicator.classList.remove('show');
+    }, 2000);
+}
+
+// Filter functionality
+async function applyFilters() {
+    const dateFilter = document.getElementById('date-filter').value;
+    const languageFilter = document.getElementById('language-filter').value;
+    const accuracyFilter = document.getElementById('accuracy-filter').value;
+    const querySearch = document.getElementById('query-search').value;
+    
+    const params = new URLSearchParams();
+    if (dateFilter !== 'all') params.append('date_filter', dateFilter);
+    if (languageFilter !== 'all') params.append('language_filter', languageFilter);
+    if (accuracyFilter !== 'all') params.append('accuracy_filter', accuracyFilter);
+    if (querySearch) params.append('query_search', querySearch);
+    
+    try {
+        const response = await fetch(`/api/search-results-data?${params.toString()}`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('admin:admin123')
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateTable(data.results);
+            updateStats(data.stats);
+            
+            // Update results count
+            document.getElementById('results-count').textContent = `${data.results.length} results`;
+            
+            // Show filters applied indicator
+            const cardBody = document.querySelector('.card-body');
+            if (params.toString()) {
+                cardBody.classList.add('filters-applied');
+            } else {
+                cardBody.classList.remove('filters-applied');
+            }
+        }
+    } catch (error) {
+        console.error('Error applying filters:', error);
+    }
+}
+
+function updateTable(results) {
+    const tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = '';
+    
+    if (results.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <div class="text-muted">No results found with current filters</div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    results.forEach(result => {
+        const row = createTableRow(result);
+        tbody.appendChild(row);
+    });
+}
+
+function createTableRow(result) {
+    const row = document.createElement('tr');
+    row.className = 'result-row';
+    row.setAttribute('data-id', result.id);
+    
+    const formatTimestamp = (timestamp) => {
+        if (!timestamp) return 'N/A';
+        const date = new Date(timestamp);
+        return {
+            date: date.toLocaleDateString(),
+            time: date.toLocaleTimeString()
+        };
+    };
+    
+    const ts = formatTimestamp(result.search_timestamp);
+    
+    row.innerHTML = `
+        <td>
+            <div class="user-info">
+                <div class="fw-bold">${result.full_name || 'Unknown User'}</div>
+                <small class="text-muted">ID: ${result.user_id}</small>
+            </div>
+        </td>
+        <td>
+            <div class="query-cell">
+                <span class="query-text" title="${result.query}">
+                    ${result.query.length > 40 ? result.query.substring(0, 40) + '...' : result.query}
+                </span>
+            </div>
+        </td>
+        <td>
+            <div class="main-result">
+                ${result.main_code ? `
+                    <code class="tnved-code">${result.main_code}</code>
+                    <div class="accuracy-badge">
+                        ${result.main_accuracy ? `<span class="badge bg-success">${parseFloat(result.main_accuracy).toFixed(3)}</span>` : ''}
+                    </div>
+                    <div class="description-text">
+                        <small class="text-muted">${result.main_description ? (result.main_description.length > 50 ? result.main_description.substring(0, 50) + '...' : result.main_description) : ''}</small>
+                    </div>
+                ` : '<span class="text-muted">No main result</span>'}
+            </div>
+        </td>
+        <td>
+            <div class="similar-results">
+                ${createSimilarResults(result)}
+            </div>
+        </td>
+        <td>
+            <span class="badge bg-secondary">${result.language || 'N/A'}</span>
+        </td>
+        <td>
+            <span class="badge bg-primary">${result.total_results_found || 0}</span>
+        </td>
+        <td>
+            <div class="timestamp">
+                <div>${ts.date}</div>
+                <small class="text-muted">${ts.time}</small>
+            </div>
+        </td>
+        <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="viewDetails(${result.id})">
+                <i class="fas fa-eye"></i>
+            </button>
+        </td>
+    `;
+    
+    return row;
+}
+
+function createSimilarResults(result) {
+    let html = '';
+    
+    for (let i = 1; i <= 3; i++) {
+        const code = result[`similar_${i}_code`];
+        const accuracy = result[`similar_${i}_accuracy`];
+        
+        if (code) {
+            html += `
+                <div class="similar-item">
+                    <code class="tnved-code-small">${code}</code>
+                    ${accuracy ? `<span class="badge badge-sm bg-info">${parseFloat(accuracy).toFixed(3)}</span>` : ''}
+                </div>
+            `;
+        }
+    }
+    
+    return html || '<span class="text-muted">No similar results</span>';
+}
+
+function updateStats(stats) {
+    document.getElementById('total-results').textContent = stats.total_results || 0;
+    document.getElementById('today-results').textContent = stats.today_results || 0;
+    document.getElementById('avg-accuracy').textContent = stats.avg_accuracy || '0.00';
+    document.getElementById('unique-codes').textContent = stats.unique_codes || 0;
+}
+
+async function viewDetails(resultId) {
+    try {
+        const response = await fetch(`/api/search-result-detail/${resultId}`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('admin:admin123')
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showDetailModal(data);
+        }
+    } catch (error) {
+        console.error('Error loading details:', error);
+    }
+}
+
+function showDetailModal(result) {
+    const modalBody = document.getElementById('modal-body-content');
+    modalBody.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Search Information:</h6>
+                <table class="table table-borderless">
+                    <tr><th>User ID:</th><td>${result.user_id}</td></tr>
+                    <tr><th>User Name:</th><td>${result.full_name || 'Unknown'}</td></tr>
+                    <tr><th>Query:</th><td><strong>${result.query}</strong></td></tr>
+                    <tr><th>Language:</th><td><span class="badge bg-secondary">${result.language || 'N/A'}</span></td></tr>
+                    <tr><th>Timestamp:</th><td>${result.search_timestamp ? new Date(result.search_timestamp).toLocaleString() : 'N/A'}</td></tr>
+                    <tr><th>Total Found:</th><td><span class="badge bg-primary">${result.total_results_found || 0}</span></td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Main Result:</h6>
+                <div class="border p-3 rounded mb-3">
+                    <code class="tnved-code">${result.main_code || 'N/A'}</code>
+                    ${result.main_accuracy ? `<span class="badge bg-success ms-2">${parseFloat(result.main_accuracy).toFixed(3)}</span>` : ''}
+                    <div class="mt-2">
+                        <small class="text-muted">${result.main_description || 'No description'}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h6>Similar Results:</h6>
+        <div class="row">
+            ${createDetailedSimilarResults(result)}
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
+}
+
+function createDetailedSimilarResults(result) {
+    let html = '';
+    
+    for (let i = 1; i <= 3; i++) {
+        const code = result[`similar_${i}_code`];
+        const description = result[`similar_${i}_description`];
+        const accuracy = result[`similar_${i}_accuracy`];
+        
+        if (code) {
+            html += `
+                <div class="col-md-4 mb-3">
+                    <div class="border p-3 rounded">
+                        <code class="tnved-code-small">${code}</code>
+                        ${accuracy ? `<span class="badge bg-info ms-1">${parseFloat(accuracy).toFixed(3)}</span>` : ''}
+                        <div class="mt-2">
+                            <small class="text-muted">${description ? (description.length > 100 ? description.substring(0, 100) + '...' : description) : 'No description'}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    return html || '<div class="col-12"><p class="text-muted">No similar results found</p></div>';
+}
+
+async function exportResults() {
+    try {
+        window.open('/export-search-results', '_blank');
+    } catch (error) {
+        console.error('Error exporting results:', error);
+    }
+}
+
+// Initialize auto-refresh on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds
+    autoRefreshInterval = setInterval(refreshResults, 30000);
+    
+    // Add real-time tooltip
+    const refreshBtn = document.getElementById('refresh-results');
+    refreshBtn.title = 'Auto-refreshes every 30 seconds';
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+});
+</script>
+{% endblock %} 

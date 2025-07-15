@@ -1,0 +1,872 @@
+{% extends "base.html" %}
+
+{% block title %}Broadcast Messages - TNVED Bot Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Broadcast Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 mb-2">📢 Broadcast Messages</h1>
+                <p class="lead mb-0">Send messages to your bot users with powerful targeting options</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group">
+                    <a href="/" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Broadcast Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">Total Recipients</p>
+                            <h3 class="card-title mb-0">{{ total_users }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">Active Users</p>
+                            <h3 class="card-title mb-0">{{ active_users }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">Messages Sent</p>
+                            <h3 class="card-title mb-0">{{ messages_sent_today }}</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-paper-plane fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="card-text mb-1">Delivery Rate</p>
+                            <h3 class="card-title mb-0">98.5%</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Message Composer -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">✏️ Compose Broadcast Message</h5>
+                    <small class="text-muted">Create and send messages to your bot users</small>
+                </div>
+                <div class="card-body">
+                    <form id="broadcastForm">
+                        <!-- Message Content -->
+                        <div class="mb-3">
+                            <label for="messageTitle" class="form-label">Message Title</label>
+                            <input type="text" class="form-control" id="messageTitle" placeholder="Enter message title...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="messageContent" class="form-label">Message Content</label>
+                            <textarea class="form-control" id="messageContent" rows="6" placeholder="Write your message here...
+
+You can use:
+• Bold text: **bold**
+• Italic text: *italic*
+• Links: [text](url)
+• Emojis: 🎉 ✅ ⚠️"></textarea>
+                            <div class="form-text">
+                                <small>
+                                    Supports Markdown formatting. 
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#formattingModal">View formatting guide</a>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Language Selection -->
+                        <div class="mb-3">
+                            <label class="form-label">Language</label>
+                            <div class="btn-group" role="group">
+                                <input type="checkbox" class="btn-check" id="lang-ru" checked>
+                                <label class="btn btn-outline-primary" for="lang-ru">🇷🇺 Russian</label>
+                                
+                                <input type="checkbox" class="btn-check" id="lang-uz">
+                                <label class="btn btn-outline-primary" for="lang-uz">🇺🇿 Uzbek</label>
+                                
+                                <input type="checkbox" class="btn-check" id="lang-en">
+                                <label class="btn btn-outline-primary" for="lang-en">🇺🇸 English</label>
+                            </div>
+                            <div class="form-text">Select languages for your message. Auto-translation available.</div>
+                        </div>
+                        
+                        <!-- Scheduling -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="scheduleMessage">
+                                <label class="form-check-label" for="scheduleMessage">
+                                    Schedule message for later
+                                </label>
+                            </div>
+                            <div id="scheduleOptions" class="mt-2" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="date" class="form-control" id="scheduleDate">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="time" class="form-control" id="scheduleTime">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary" onclick="previewMessage()">
+                                <i class="fas fa-eye me-2"></i>Preview
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="saveAsDraft()">
+                                <i class="fas fa-save me-2"></i>Save Draft
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane me-2"></i>Send Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Targeting & Preview -->
+        <div class="col-md-4">
+            <!-- Target Audience -->
+            <div class="card mb-3">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">🎯 Target Audience</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Send to:</label>
+                        <select class="form-select" id="targetAudience">
+                            <option value="all">All Users ({{ total_users }})</option>
+                            <option value="active">Active Users ({{ active_users }})</option>
+                            <option value="new">New Users ({{ new_users_week }})</option>
+                            <option value="language">By Language</option>
+                            <option value="custom">Custom Selection</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Language Breakdown -->
+                    <div class="mb-3">
+                        <h6>Language Distribution:</h6>
+                        <div class="language-stats">
+                            {% for lang in language_stats %}
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>
+                                    {% if lang.code == 'ru' %}🇷🇺 Russian
+                                    {% elif lang.code == 'uz' %}🇺🇿 Uzbek
+                                    {% elif lang.code == 'en' %}🇺🇸 English
+                                    {% else %}{{ lang.code }}
+                                    {% endif %}
+                                </span>
+                                <span class="badge bg-primary">{{ lang.count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Custom Selection Interface -->
+                    <div id="customSelectionPanel" class="mb-3" style="display: none;">
+                        <h6>👥 Select Users:</h6>
+                        <div class="mb-2">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" id="userSearchInput" placeholder="Search by name, username, or phone...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="selectAllUsers()">Select All</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearSelection()">Clear All</button>
+                                <button type="button" class="btn btn-outline-info" onclick="selectByLanguage()">By Language</button>
+                                <button type="button" class="btn btn-outline-success" onclick="selectActiveUsers()">Active Only</button>
+                            </div>
+                        </div>
+                        
+                        <div id="usersList" class="users-selection-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 0.5rem;">
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-spinner fa-spin"></i> Loading users...
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <span id="selectedCount">0</span> users selected
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Estimated Reach -->
+                    <div class="alert alert-info">
+                        <h6 class="mb-1">📊 Estimated Reach</h6>
+                        <div id="estimatedReach">{{ total_users }} users will receive this message</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Message Preview -->
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">👁️ Live Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="message-preview border rounded p-3" style="background: #f8f9fa;">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bot-avatar bg-primary rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-robot text-white"></i>
+                            </div>
+                            <strong>TNVED Bot</strong>
+                            <small class="text-muted ms-auto">now</small>
+                        </div>
+                        <div id="previewTitle" class="fw-bold mb-1">Message Title</div>
+                        <div id="previewContent">Your message will appear here...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Broadcasts -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">📋 Recent Broadcasts</h5>
+                    <small class="text-muted">Your message history</small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Message</th>
+                                    <th>Recipients</th>
+                                    <th>Delivered</th>
+                                    <th>Sent Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="fw-medium">🎉 Welcome to TNVED Bot!</div>
+                                        <small class="text-muted">New user onboarding message</small>
+                                    </td>
+                                    <td>{{ total_users }}</td>
+                                    <td><span class="text-success">{{ (total_users * 0.985)|round|int }}</span></td>
+                                    <td>2025-01-15 14:30</td>
+                                    <td><span class="badge bg-success">Delivered</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewStats(1)">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="fw-medium">📢 New Features Available</div>
+                                        <small class="text-muted">Feature announcement</small>
+                                    </td>
+                                    <td>{{ active_users }}</td>
+                                    <td><span class="text-success">{{ (active_users * 0.98)|round|int }}</span></td>
+                                    <td>2025-01-10 09:00</td>
+                                    <td><span class="badge bg-success">Delivered</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewStats(2)">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="fw-medium">⚠️ Maintenance Notice</div>
+                                        <small class="text-muted">System maintenance notification</small>
+                                    </td>
+                                    <td>{{ total_users }}</td>
+                                    <td><span class="text-warning">Scheduled</span></td>
+                                    <td>2025-01-20 08:00</td>
+                                    <td><span class="badge bg-warning">Scheduled</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning" onclick="editScheduled(3)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formatting Guide Modal -->
+<div class="modal fade" id="formattingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📝 Message Formatting Guide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Text Formatting:</h6>
+                <ul>
+                    <li><code>**bold text**</code> → <strong>bold text</strong></li>
+                    <li><code>*italic text*</code> → <em>italic text</em></li>
+                    <li><code>`code text`</code> → <code>code text</code></li>
+                    <li><code>[link text](url)</code> → clickable link</li>
+                </ul>
+                
+                <h6>Special Characters:</h6>
+                <ul>
+                    <li>✅ ❌ ⚠️ 📢 🎉 💡 🔥 📊 👥 🔍</li>
+                    <li>Use emojis to make messages more engaging</li>
+                </ul>
+                
+                <h6>Best Practices:</h6>
+                <ul>
+                    <li>Keep messages concise and clear</li>
+                    <li>Use emojis sparingly for visual appeal</li>
+                    <li>Include clear call-to-action if needed</li>
+                    <li>Test with preview before sending</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Live preview functionality
+document.getElementById('messageTitle').addEventListener('input', updatePreview);
+document.getElementById('messageContent').addEventListener('input', updatePreview);
+
+function updatePreview() {
+    const title = document.getElementById('messageTitle').value || 'Message Title';
+    const content = document.getElementById('messageContent').value || 'Your message will appear here...';
+    
+    document.getElementById('previewTitle').textContent = title;
+    document.getElementById('previewContent').innerHTML = formatMessage(content);
+}
+
+function formatMessage(text) {
+    // Simple markdown-like formatting
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+}
+
+// Schedule toggle
+document.getElementById('scheduleMessage').addEventListener('change', function() {
+    const scheduleOptions = document.getElementById('scheduleOptions');
+    scheduleOptions.style.display = this.checked ? 'block' : 'none';
+});
+
+// Target audience change
+document.getElementById('targetAudience').addEventListener('change', function() {
+    const reach = document.getElementById('estimatedReach');
+    const customPanel = document.getElementById('customSelectionPanel');
+    const value = this.value;
+    
+    // Hide/show custom selection panel
+    if (value === 'custom') {
+        customPanel.style.display = 'block';
+        loadUsers();
+        reach.textContent = '0 users selected';
+    } else {
+        customPanel.style.display = 'none';
+        
+        switch(value) {
+            case 'all':
+                reach.textContent = '{{ total_users }} users will receive this message';
+                break;
+            case 'active':
+                reach.textContent = '{{ active_users }} active users will receive this message';
+                break;
+            case 'new':
+                reach.textContent = '{{ new_users_week }} new users will receive this message';
+                break;
+            default:
+                reach.textContent = 'Select targeting options to see estimated reach';
+        }
+    }
+});
+
+// Action functions
+function previewMessage() {
+    const title = document.getElementById('messageTitle').value || 'Message Title';
+    const content = document.getElementById('messageContent').value || 'Your message content';
+    
+    // Update the live preview
+    document.getElementById('previewTitle').textContent = title;
+    document.getElementById('previewContent').innerHTML = formatMessage(content);
+    
+    // Scroll to preview
+    document.querySelector('.card:has(#previewTitle)').scrollIntoView({ behavior: 'smooth' });
+}
+
+function saveAsDraft() {
+    const title = document.getElementById('messageTitle').value;
+    const content = document.getElementById('messageContent').value;
+    
+    if (!title && !content) {
+        alert('Nothing to save. Please add some content first.');
+        return;
+    }
+    
+    // Save to localStorage as draft
+    const draft = {
+        title: title,
+        content: content,
+        target: document.getElementById('targetAudience').value,
+        timestamp: new Date().toISOString()
+    };
+    
+    localStorage.setItem('broadcast_draft', JSON.stringify(draft));
+    
+    // Show success message
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+    btn.classList.add('btn-success');
+    btn.classList.remove('btn-outline-primary');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-primary');
+    }, 2000);
+}
+
+async function sendMessage() {
+    const title = document.getElementById('messageTitle').value;
+    const content = document.getElementById('messageContent').value;
+    const targetAudience = document.getElementById('targetAudience').value;
+    
+    if (!title || !content) {
+        alert('Please fill in both title and message content');
+        return;
+    }
+    
+    // Get selected users for custom targeting
+    let selectedUsers = [];
+    if (targetAudience === 'custom') {
+        selectedUsers = getSelectedUsers();
+        if (selectedUsers.length === 0) {
+            alert('Please select at least one user for custom targeting');
+            return;
+        }
+    }
+    
+    // Get selected language if targeting by language
+    let language = null;
+    if (targetAudience === 'language') {
+        const checkedLangs = document.querySelectorAll('input[id^="lang-"]:checked');
+        if (checkedLangs.length > 0) {
+            language = checkedLangs[0].id.replace('lang-', '');
+        }
+    }
+    
+    if (!confirm('Are you sure you want to send this message to selected users? This action cannot be undone.')) {
+        return;
+    }
+    
+    // Show loading state
+    const sendBtn = event.target;
+    const originalText = sendBtn.innerHTML;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    sendBtn.disabled = true;
+    
+    try {
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('message', content);
+        formData.append('target_audience', targetAudience);
+        if (language) {
+            formData.append('language', language);
+        }
+        if (selectedUsers.length > 0) {
+            formData.append('selected_users', JSON.stringify(selectedUsers));
+        }
+        
+        // Send broadcast
+        const response = await fetch('/api/send-broadcast', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            alert(`✅ Broadcast sent successfully!\n\n` +
+                  `📊 Statistics:\n` +
+                  `• Total users: ${result.total_users}\n` +
+                  `• Successfully sent: ${result.successful_sends}\n` +
+                  `• Failed: ${result.failed_sends}\n\n` +
+                  `Messages will appear in your bot users' Telegram chats immediately.`);
+            
+            // Clear form
+            document.getElementById('messageTitle').value = '';
+            document.getElementById('messageContent').value = '';
+            updatePreview();
+            
+            // Update sent messages counter
+            const sentCounter = document.querySelector('.bg-info h3');
+            if (sentCounter) {
+                const currentCount = parseInt(sentCounter.textContent) || 0;
+                sentCounter.textContent = currentCount + result.successful_sends;
+            }
+            
+        } else {
+            alert(`❌ Broadcast failed: ${result.message}`);
+        }
+        
+    } catch (error) {
+        console.error('Broadcast error:', error);
+        alert(`❌ Error sending broadcast: ${error.message}`);
+    } finally {
+        // Restore button
+        sendBtn.innerHTML = originalText;
+        sendBtn.disabled = false;
+    }
+}
+
+// Load draft on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const draft = localStorage.getItem('broadcast_draft');
+    if (draft) {
+        try {
+            const draftData = JSON.parse(draft);
+            
+            // Ask user if they want to restore draft
+            if (confirm('Found a saved draft. Do you want to restore it?')) {
+                document.getElementById('messageTitle').value = draftData.title || '';
+                document.getElementById('messageContent').value = draftData.content || '';
+                document.getElementById('targetAudience').value = draftData.target || 'all';
+                updatePreview();
+            }
+        } catch (e) {
+            console.error('Error loading draft:', e);
+        }
+    }
+});
+
+// Update audience count in real-time
+document.getElementById('targetAudience').addEventListener('change', async function() {
+    const target = this.value;
+    const reach = document.getElementById('estimatedReach');
+    
+    try {
+        reach.textContent = 'Calculating...';
+        const response = await fetch(`/api/preview-audience?target=${target}`);
+        const result = await response.json();
+        
+        if (result.count !== undefined) {
+            reach.textContent = `${result.count} users will receive this message`;
+        } else {
+            reach.textContent = 'Unable to calculate reach';
+        }
+    } catch (error) {
+        console.error('Error getting audience preview:', error);
+        reach.textContent = 'Error calculating reach';
+    }
+});
+
+function viewStats(id) {
+    alert(`Viewing statistics for message #${id}`);
+}
+
+function editScheduled(id) {
+    alert(`Editing scheduled message #${id}`);
+}
+
+// Custom Selection Functions
+let allUsers = [];
+let filteredUsers = [];
+
+async function loadUsers() {
+    try {
+        console.log('Loading users...');
+        
+        // Create XMLHttpRequest to bypass proxy issues
+        const xhr = new XMLHttpRequest();
+        const url = '/api/users-for-broadcast';
+        
+        return new Promise((resolve, reject) => {
+            xhr.open('GET', url, true);
+            xhr.setRequestHeader('Authorization', 'Basic ' + btoa('admin:admin123'));
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    console.log('Response status:', xhr.status);
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            const users = JSON.parse(xhr.responseText);
+                            console.log('Loaded users:', users.length);
+                            
+                            if (!Array.isArray(users)) {
+                                throw new Error('Invalid response format: expected array');
+                            }
+                            
+                            allUsers = users;
+                            filteredUsers = users;
+                            renderUsersList();
+                            resolve(users);
+                        } catch (parseError) {
+                            console.error('Parse error:', parseError);
+                            document.getElementById('usersList').innerHTML = 
+                                `<div class="text-center text-danger py-3">
+                                    <i class="fas fa-exclamation-triangle"></i> Failed to parse users data<br>
+                                    <small>${parseError.message}</small>
+                                </div>`;
+                            reject(parseError);
+                        }
+                    } else {
+                        const errorMsg = `HTTP ${xhr.status}: ${xhr.statusText}`;
+                        console.error('HTTP error:', errorMsg);
+                        document.getElementById('usersList').innerHTML = 
+                            `<div class="text-center text-danger py-3">
+                                <i class="fas fa-exclamation-triangle"></i> Failed to load users<br>
+                                <small>${errorMsg}</small>
+                                <br><small>Check if the server is running</small>
+                            </div>`;
+                        reject(new Error(errorMsg));
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                const errorMsg = 'Network error - cannot connect to server';
+                console.error('Network error');
+                document.getElementById('usersList').innerHTML = 
+                    `<div class="text-center text-danger py-3">
+                        <i class="fas fa-exclamation-triangle"></i> Network Error<br>
+                        <small>${errorMsg}</small>
+                        <br><small>Make sure the admin panel server is running</small>
+                    </div>`;
+                reject(new Error(errorMsg));
+            };
+            
+            xhr.send();
+        });
+        
+    } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('usersList').innerHTML = 
+            `<div class="text-center text-danger py-3">
+                <i class="fas fa-exclamation-triangle"></i> Failed to load users<br>
+                <small>${error.message}</small>
+            </div>`;
+    }
+}
+
+function renderUsersList() {
+    const usersList = document.getElementById('usersList');
+    
+    if (filteredUsers.length === 0) {
+        usersList.innerHTML = '<div class="text-center text-muted py-3">No users found</div>';
+        return;
+    }
+    
+    const html = filteredUsers.map(user => `
+        <div class="form-check user-item py-1">
+            <input class="form-check-input" type="checkbox" value="${user.telegram_id}" id="user_${user.telegram_id}" onchange="updateSelectedCount()">
+            <label class="form-check-label w-100 d-flex justify-content-between" for="user_${user.telegram_id}">
+                <div>
+                    <div class="fw-medium">${user.full_name || 'Unknown'}</div>
+                    <small class="text-muted">
+                        ${user.username ? '@' + user.username : ''} 
+                        ${user.phone || ''} 
+                        ${user.language ? '• ' + user.language.toUpperCase() : ''}
+                    </small>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">
+                        ${user.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}
+                    </small>
+                </div>
+            </label>
+        </div>
+    `).join('');
+    
+    usersList.innerHTML = html;
+    updateSelectedCount();
+}
+
+function searchUsers() {
+    const query = document.getElementById('userSearchInput').value.toLowerCase();
+    
+    if (!query) {
+        filteredUsers = allUsers;
+    } else {
+        filteredUsers = allUsers.filter(user => 
+            (user.full_name && user.full_name.toLowerCase().includes(query)) ||
+            (user.username && user.username.toLowerCase().includes(query)) ||
+            (user.phone && user.phone.includes(query))
+        );
+    }
+    
+    renderUsersList();
+}
+
+function selectAllUsers() {
+    const checkboxes = document.querySelectorAll('#usersList input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = true);
+    updateSelectedCount();
+}
+
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('#usersList input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    updateSelectedCount();
+}
+
+function selectByLanguage() {
+    const language = prompt('Enter language code (ru, uz, en):');
+    if (!language) return;
+    
+    const checkboxes = document.querySelectorAll('#usersList input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        const userId = cb.value;
+        const user = allUsers.find(u => u.telegram_id == userId);
+        cb.checked = user && user.language === language.toLowerCase();
+    });
+    updateSelectedCount();
+}
+
+function selectActiveUsers() {
+    const checkboxes = document.querySelectorAll('#usersList input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        const userId = cb.value;
+        const user = allUsers.find(u => u.telegram_id == userId);
+        cb.checked = user && user.is_active;
+    });
+    updateSelectedCount();
+}
+
+function getSelectedUsers() {
+    const checkboxes = document.querySelectorAll('#usersList input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
+function updateSelectedCount() {
+    const selectedCount = document.querySelectorAll('#usersList input[type="checkbox"]:checked').length;
+    document.getElementById('selectedCount').textContent = selectedCount;
+    
+    // Update estimated reach
+    if (document.getElementById('targetAudience').value === 'custom') {
+        document.getElementById('estimatedReach').textContent = `${selectedCount} users will receive this message`;
+    }
+}
+
+// Add search functionality
+document.getElementById('userSearchInput').addEventListener('input', function() {
+    // Debounce search
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(searchUsers, 300);
+});
+</script>
+
+<style>
+.message-preview {
+    min-height: 100px;
+}
+
+.bot-avatar {
+    flex-shrink: 0;
+}
+
+.language-stats .badge {
+    min-width: 40px;
+}
+
+.form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.users-selection-list .user-item:hover {
+    background-color: #f8f9fa;
+}
+
+.users-selection-list .form-check-label {
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.users-selection-list .form-check-input {
+    margin-top: 0.25rem;
+}
+
+#customSelectionPanel {
+    animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %} 

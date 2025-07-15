@@ -1,0 +1,704 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - TNVED Bot Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Analytics Header -->
+    <div class="analytics-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 mb-2">📊 Advanced Analytics Dashboard</h1>
+                <p class="lead mb-0">Comprehensive insights and analytics for your TNVED bot</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group">
+                    <button class="btn btn-outline-light" onclick="location.reload()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Data
+                    </button>
+                    <a href="/" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card metric-primary">
+                <div class="metric-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ growth_rate }}%</h3>
+                    <p>Growth Rate</p>
+                    <small>Last 30 days</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card metric-success">
+                <div class="metric-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ avg_queries_per_user }}</h3>
+                    <p>Avg. Queries/User</p>
+                    <small>Per user activity</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card metric-warning">
+                <div class="metric-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ success_rate }}%</h3>
+                    <p>Success Rate</p>
+                    <small>Query success</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card metric-info">
+                <div class="metric-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>{{ peak_hour }}:00</h3>
+                    <p>Peak Hour</p>
+                    <small>Most active time</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Grid -->
+    <div class="row mb-4">
+        <!-- User Growth Chart -->
+        <div class="col-xl-8 col-lg-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>📈 User Growth Over Time</h5>
+                    <p>New user registrations over the last 30 days</p>
+                </div>
+                <div class="chart-body">
+                    <canvas id="userGrowthChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Language Distribution -->
+        <div class="col-xl-4 col-lg-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>🌍 Language Distribution</h5>
+                    <p>User language preferences</p>
+                </div>
+                <div class="chart-body">
+                    <canvas id="languageChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <!-- Search Activity Trends -->
+        <div class="col-xl-6 col-lg-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>🔍 Search Activity Trends</h5>
+                    <p>Daily search volume</p>
+                </div>
+                <div class="chart-body">
+                    <canvas id="searchTrendsChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Usage Patterns by Hour -->
+        <div class="col-xl-6 col-lg-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>⏰ Usage Patterns by Hour</h5>
+                    <p>Activity distribution throughout the day</p>
+                </div>
+                <div class="chart-body">
+                    <canvas id="hourlyUsageChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Data Tables -->
+    <div class="row">
+        <!-- Top Searched Terms -->
+        <div class="col-lg-8">
+            <div class="data-card">
+                <div class="data-header">
+                    <h5>🔥 Top Searched Terms</h5>
+                    <p>Most popular queries this month</p>
+                </div>
+                <div class="data-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Query</th>
+                                    <th>Count</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for query in top_queries %}
+                                <tr>
+                                    <td><span class="rank-badge">{{ loop.index }}</span></td>
+                                    <td class="query-cell">{{ query.query[:50] }}{% if query.query|length > 50 %}...{% endif %}</td>
+                                    <td><span class="count-badge">{{ query.count }}</span></td>
+                                    <td>
+                                        {% if query.trend > 0 %}
+                                            <span class="trend-up">+{{ query.trend }}%</span>
+                                        {% elif query.trend < 0 %}
+                                            <span class="trend-down">{{ query.trend }}%</span>
+                                        {% else %}
+                                            <span class="trend-neutral">0%</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Activity Insights -->
+        <div class="col-lg-4">
+            <div class="insight-card">
+                <div class="insight-header">
+                    <h5>💡 Key Insights</h5>
+                </div>
+                <div class="insight-body">
+                    <div class="insight-metric">
+                        <div class="insight-number">{{ active_users_week }}</div>
+                        <div class="insight-label">Active This Week</div>
+                    </div>
+                    
+                    <div class="insight-metric">
+                        <div class="insight-number">{{ avg_session_length }}</div>
+                        <div class="insight-label">Avg Session (min)</div>
+                    </div>
+                    
+                    <div class="insight-metric">
+                        <div class="insight-number">{{ retention_rate }}%</div>
+                        <div class="insight-label">7-Day Retention</div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="quick-insights">
+                        <h6>📊 Quick Insights</h6>
+                        <ul class="insight-list">
+                            <li>{{ insight_1 }}</li>
+                            <li>{{ insight_2 }}</li>
+                            <li>{{ insight_3 }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Debug Section (remove in production) -->
+    <div class="row mt-4" style="display: none;" id="debug-section">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🔍 Debug Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Growth Labels:</strong>
+                            <pre id="debug-growth-labels"></pre>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Growth Data:</strong>
+                            <pre id="debug-growth-data"></pre>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Language Labels:</strong>
+                            <pre id="debug-language-labels"></pre>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Language Data:</strong>
+                            <pre id="debug-language-data"></pre>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-secondary mt-2" onclick="toggleDebug()">Hide Debug</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom Analytics Styles */
+.analytics-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.metric-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+}
+
+.metric-primary { border-left: 4px solid #007bff; }
+.metric-success { border-left: 4px solid #28a745; }
+.metric-warning { border-left: 4px solid #ffc107; }
+.metric-info { border-left: 4px solid #17a2b8; }
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.metric-primary .metric-icon { background: rgba(0,123,255,0.1); color: #007bff; }
+.metric-success .metric-icon { background: rgba(40,167,69,0.1); color: #28a745; }
+.metric-warning .metric-icon { background: rgba(255,193,7,0.1); color: #ffc107; }
+.metric-info .metric-icon { background: rgba(23,162,184,0.1); color: #17a2b8; }
+
+.metric-content h3 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.metric-content p {
+    margin: 0;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.metric-content small {
+    color: #7f8c8d;
+}
+
+.chart-card, .data-card, .insight-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.chart-header, .data-header, .insight-header {
+    padding: 1.5rem 1.5rem 0;
+}
+
+.chart-header h5, .data-header h5, .insight-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.chart-header p, .data-header p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.chart-body {
+    padding: 1rem 1.5rem 1.5rem;
+    height: 350px;
+    position: relative;
+}
+
+.data-body {
+    padding: 0;
+}
+
+.insight-body {
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.insight-metric {
+    text-align: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.insight-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.insight-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.rank-badge {
+    background: #007bff;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.count-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.trend-up { color: #28a745; font-weight: 600; }
+.trend-down { color: #dc3545; font-weight: 600; }
+.trend-neutral { color: #6c757d; font-weight: 600; }
+
+.query-cell {
+    font-weight: 500;
+    color: #495057;
+}
+
+.insight-list {
+    list-style: none;
+    padding: 0;
+}
+
+.insight-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f1f1;
+    color: #495057;
+}
+
+.insight-list li:last-child {
+    border-bottom: none;
+}
+
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+}
+</style>
+
+<!-- Include Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script>
+// Chart data from backend
+const chartData = {
+    growth: {
+        labels: {{ growth_labels | safe }},
+        data: {{ growth_data | safe }}
+    },
+    language: {
+        labels: {{ language_labels | safe }},
+        data: {{ language_data | safe }}
+    },
+    search: {
+        labels: {{ search_trend_labels | safe }},
+        data: {{ search_trend_data | safe }}
+    },
+    hourly: {
+        labels: {{ hourly_labels | safe }},
+        data: {{ hourly_data | safe }}
+    }
+};
+
+console.log('Chart data loaded:', chartData);
+
+// Debug function
+function toggleDebug() {
+    const debugSection = document.getElementById('debug-section');
+    if (debugSection.style.display === 'none') {
+        debugSection.style.display = 'block';
+        document.getElementById('debug-growth-labels').textContent = JSON.stringify(chartData.growth.labels, null, 2);
+        document.getElementById('debug-growth-data').textContent = JSON.stringify(chartData.growth.data, null, 2);
+        document.getElementById('debug-language-labels').textContent = JSON.stringify(chartData.language.labels, null, 2);
+        document.getElementById('debug-language-data').textContent = JSON.stringify(chartData.language.data, null, 2);
+    } else {
+        debugSection.style.display = 'none';
+    }
+}
+
+// Initialize charts when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, Chart.js version:', Chart?.version || 'Not loaded');
+    
+    // Wait a bit to ensure Chart.js is fully loaded
+    setTimeout(initializeCharts, 100);
+});
+
+function initializeCharts() {
+    console.log('Initializing charts...');
+    
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded!');
+        showChartErrors();
+        return;
+    }
+    
+    try {
+        // Create charts with error handling
+        createUserGrowthChart();
+        createLanguageChart();
+        createSearchTrendsChart();
+        createHourlyUsageChart();
+        
+        console.log('All charts initialized successfully');
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+        showChartErrors();
+    }
+}
+
+function createUserGrowthChart() {
+    const ctx = document.getElementById('userGrowthChart');
+    if (!ctx) return;
+    
+    const labels = chartData.growth.labels.length > 0 ? chartData.growth.labels : ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    const data = chartData.growth.data.length > 0 ? chartData.growth.data : [5, 8, 12, 15];
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'New Users',
+                data: data,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { color: '#6c757d' }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#6c757d' }
+                }
+            }
+        }
+    });
+    console.log('User Growth Chart created');
+}
+
+function createLanguageChart() {
+    const ctx = document.getElementById('languageChart');
+    if (!ctx) return;
+    
+    const labels = chartData.language.labels.length > 0 ? chartData.language.labels : ['Russian', 'Uzbek', 'English'];
+    const data = chartData.language.data.length > 0 ? chartData.language.data : [70, 25, 5];
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: ['#667eea', '#28a745', '#ffc107', '#17a2b8'],
+                borderWidth: 0,
+                hoverBorderWidth: 3,
+                hoverBorderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'bottom',
+                    labels: { padding: 20, color: '#6c757d' }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+    console.log('Language Chart created');
+}
+
+function createSearchTrendsChart() {
+    const ctx = document.getElementById('searchTrendsChart');
+    if (!ctx) return;
+    
+    const labels = chartData.search.labels.length > 0 ? chartData.search.labels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const data = chartData.search.data.length > 0 ? chartData.search.data : [45, 52, 38, 65, 42, 28, 35];
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Searches',
+                data: data,
+                backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                borderColor: '#28a745',
+                borderWidth: 1,
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { color: '#6c757d' }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#6c757d' }
+                }
+            }
+        }
+    });
+    console.log('Search Trends Chart created');
+}
+
+function createHourlyUsageChart() {
+    const ctx = document.getElementById('hourlyUsageChart');
+    if (!ctx) return;
+    
+    const labels = chartData.hourly.labels.length > 0 ? chartData.hourly.labels : ['00:00', '06:00', '12:00', '18:00'];
+    const data = chartData.hourly.data.length > 0 ? chartData.hourly.data : [5, 15, 35, 25];
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Activity',
+                data: data,
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#ffc107',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { color: '#6c757d' }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#6c757d' }
+                }
+            }
+        }
+    });
+    console.log('Hourly Usage Chart created');
+}
+
+function showChartErrors() {
+    const chartIds = ['userGrowthChart', 'languageChart', 'searchTrendsChart', 'hourlyUsageChart'];
+    const chartNames = ['User Growth', 'Language Distribution', 'Search Trends', 'Hourly Usage'];
+    
+    chartIds.forEach((id, index) => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+            const container = canvas.parentElement;
+            container.innerHTML = `
+                <div class="chart-loading">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                        <h6>Chart Loading Error</h6>
+                        <p class="text-muted">Unable to load ${chartNames[index]} data.</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh Page
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleDebug()">
+                            <i class="fas fa-bug me-1"></i>Debug
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    });
+}
+
+// Add animation to metric cards on load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.metric-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %} 
